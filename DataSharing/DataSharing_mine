@@ -1,0 +1,49 @@
+create database if not exists mydb1;
+create schema mydb1.cust_tables;
+create schema mydb1.cust_views;
+
+create table mydb1.cust_tables.customer1 
+as select * from SNOWFLAKE_SAMPLE_DATA.TPCH_SF10.CUSTOMER
+
+select * from mydb1.cust_tables.customer1;
+create or replace share CUSTOMER_DATASHARE
+-- give access to database, schema and table to the share and then share 
+grant usage on database mydb1 to share CUSTOMER_DATASHARE 
+grant usage on schema mydb1.cust_tables to share CUSTOMER_DATASHARE
+grant select on table mydb1.cust_tables.customer1 to share CUSTOMER_DATASHARE 
+
+alter share customer_datashare add account=YJB54361
+
+drop share customer_datashare
+
+//creating a view
+create or replace view cust_views.vw_cust
+as
+select cst.c_custkey, cst.c_name, cst.c_address, cst.c_phone 
+from SNOWFLAKE_SAMPLE_DATA.TPCH_SF10.CUSTOMER cst INNER JOIN
+SNOWFLAKE_SAMPLE_DATA.TPCH_SF10.NATION ntn
+on cst.c_nationkey = ntn.n_nationkey
+where ntn.n_name = 'BRAZIL';
+
+//creating a secure view
+create or replace secure view cust_views.sec_vw_cust
+as 
+select cst.c_custkey, cst.c_name, cst.c_address
+from SNOWFLAKE_SAMPLE_DATA.TPCH_SF10.CUSTOMER cst;
+
+//creating a materialized view
+
+//grant share permissions
+
+// reader account
+create managed account customer_analyst
+admin_name = cust_analyst,
+admin_password = 'Abcd12345',
+type = 'READER';
+
+// how to see reader accounts
+show managed accounts;
+
+
+
+show shares
