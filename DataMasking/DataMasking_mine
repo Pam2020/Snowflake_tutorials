@@ -1,0 +1,20 @@
+SELECT * FROM PUBLIC.ORDERS;
+
+// creating a policy
+CREATE OR REPLACE MASKING POLICY totalprice
+    as (val number) returns number->
+CASE WHEN CURRENT_ROLE() in ('sysadmin') THEN val
+    ELSE '0.00'
+    END;
+
+//set this policy to the column
+ALTER TABLE PUBLIC.ORDERS MODIFY COLUMN O_TOTALPRICE
+set masking policy totalprice;
+
+//unset this policy
+ALTER TABLE PUBLIC.ORDERS MODIFY COLUMN O_TOTALPRICE
+unset masking policy;
+
+//drop the policy
+drop masking policy totalprice;
+
