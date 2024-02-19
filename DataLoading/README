@@ -1,0 +1,99 @@
+Cost types/cost depends on:
+Standard Edition:2.7/credit
+Enterprise:4/credit
+Business critical-5.4/credit
+Virtual private snowflake
+
+Region
+cloud paltform where account is hosted
+Virtual warehouse size
+
+Storage Cost
+compute Cost
+cloud services COST
+
+Storage:
+
+On demand-as you use you charge 1TB/$40
+Capacity or fixed Storage 1TB/$23
+100GB-0.1 TB
+first we need to start with On demand . once our application is stable then switch to Capacity storage to save the dollars
+compute cost:
+ 
+depends on virtual warehouse usage per month
+Billed per seconds with 1 minute minimum
+Credit usgae per hour:
+
+xsmall-1 credit per hour
+small-2credit per hour
+medium-4 credit
+large-8
+XL-16
+2xL-32
+3XL-64
+4XL-128
+5XL-256
+6XL-512
+
+cost optimization
+choose appropriate Edition
+start with On demand then capacity Storage
+Choose WH
+Dev-xs with 2 clusters
+Test-Xs with 4 clusters or s with 2 clusters
+prd-m or L
+
+Small queries-choose smallest size with more number of clusters
+Few big queries on large data sets-choose large size with less clusters
+many big queries-choose Lagre size with more clusters
+
+table stypes:
+Transient tables for STGing
+Transient tables for intermeduiate data processings
+less data retention periods
+use cloing effectively
+turn off time travel before dropping the table
+make use of results cache
+use auto suspend timouts based query frequency
+
+Performance optimization:
+Define cluster keys
+Define cluster keys on large tables not in small tables
+define cluster keys on most frequently used columns as filter
+define cluster keys on Join key
+define  cluster keys on function based on columns
+select required columns
+replace or with UNION
+union all is always beteer if there are no duplicates on data
+avoid unneccessray joins
+avoid distinct if you are sure no duplicates
+
+Dataloading:
+Load types:
+Bulk loading->copy
+continuous loading->Snow pipe
+
+Copy Command:
+Copy into table name from @Stage
+file_format=(...)
+files=(filename1,filename2)
+(or)
+pattern='.*filepattern.*'
+other_optional_props;
+
+Location of files:
+Local Env:files are first staged in Snowflake stage the loaded into table
+AWS S3:Files can be loaded directly from any s3 bucket
+GCP-files can be loaded directly from any cloud storgae container
+Azure-files can beloaded directly from any azure container
+
+File types:
+CSV,TSV,JSON,AVRO,ORC,PARQUET,XML
+
+Simple Transformations:
+Column reordering
+column omisiion
+string operations
+Other functions
+sequence Numbers
+Auto increment fields
