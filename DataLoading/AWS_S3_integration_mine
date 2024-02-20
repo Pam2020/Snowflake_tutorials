@@ -1,0 +1,96 @@
+// https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration#step-5-grant-the-iam-user-permissions-to-access-bucket-objects
+
+// Configuring a snowflake storage integration to access aws s3 
+
+// create an IAM policy in AWS 
+// create IAM role in AWS - role ARN value: arn:aws:iam::533267030266:role/mysnowflakerole
+
+//create a cloud storage integration in snowflake
+
+CREATE OR REPLACE STORAGE INTEGRATION mys3integration
+  TYPE = EXTERNAL_STAGE
+  STORAGE_PROVIDER = 'S3'
+  ENABLED = TRUE
+  STORAGE_AWS_ROLE_ARN = 'arn:aws:iam::533267030266:role/mysnowflakerole'
+  STORAGE_ALLOWED_LOCATIONS = ('s3://testbucketsravya/');
+  //STORAGE_BLOCKED_LOCATIONS = ('s3://testbucketsravya/');
+
+// Retrieve the AWS IAM User for your Snowflake Account
+DESC INTEGRATION mys3integration;
+
+// STORAGE_AWS_IAM_USER_ARN: arn:aws:iam::339713112715:user/b2gj0000-s
+// STORAGE_AWS_EXTERNAL_ID: 
+//KXB55735_SFCRole=2_0v272GAohHOHuC/ZPHFxHvu350k=
+
+// Grant the IAM User Permissions to Access Bucket Objects
+// enter these values in the trust relations page in the IAM role you created for this purpose 
+
+//create a file format object
+
+CREATE DATABASE IF NOT EXISTS DB;
+CREATE SCHEMA IF NOT EXISTS DB.file_formats_pipe_csv;
+
+CREATE OR REPLACE file format DB.file_formats_pipe_csv.csv_fileformat
+    type = csv
+    field_delimiter = ','
+    skip_header = 1
+    empty_field_as_null = TRUE;
+
+//Create an external stage
+CREATE STAGE my_s3_stage
+  STORAGE_INTEGRATION = mys3integration
+  URL = 's3://testbucketsravya/'
+  FILE_FORMAT = DB.file_formats_pipe_csv.csv_fileformat;
+
+//create your table where data needs to be copied into - is this necessary??? yes, cause if you run the copy command it says mytable does not exists
+//let's create an empty table and see if we can load
+CREATE OR REPLACE TABLE mytablenew (
+     Month VARCHAR, 
+    "1958" NUMBER, 
+    "1959" NUMBER, 
+    "1960" NUMBER);
+SELECT * FROM mytablenew;
+
+//copy data into table
+
+COPY INTO mytablenew
+  FROM @my_s3_stage
+  FILE_FORMAT=(TYPE=CSV FIELD_DELIMITER=',')
+  ON_ERROR = 'CONTINUE';
+
+SHOW STAGES;
+  
+//https://docs.snowflake.com/en/user-guide/tutorials/load-from-cloud-tutorial#step-9-cleanup-summary-and-additional-resources
+
+list @DB.amazons3.my_s3_stage;
+
+// continous loading
+CREATE OR REPLACE TABLE students(
+    Name Varchar,
+    Age Number,
+    Date_joined Date
+);
+//create a new stage
+CREATE OR REPLACE STAGE db.amazons3.students_stage
+  STORAGE_INTEGRATION = mys3integration
+  URL = 's3://testbucketsravya/'
+  FILE_FORMAT = DB.file_formats_pipe_csv.csv_fileformat;
+
+
+// creating schema for pipes
+CREATE OR REPLACE SCHEMA DB.PIPES;
+
+create or replace pipe db.pipes.student_pipe
+auto_ingest= true
+as
+copy into db.amazons3.students
+from @db.amazons3.students_stage
+FILE_FORMAT = (TYPE = CSV);
+
+describe pipe db.pipes.student_pipe;
+
+select * from db.amazons3.students;
+// this is not working - data is not being loaded to the students table - how does the stage know that there is data in the s3 bucket now 
+//what is the pipe doing?
+// how does the stage or pipe know that the data file is uploaded to the s3 bucket?
+// how do we use this with amazon sns or sqs services?
