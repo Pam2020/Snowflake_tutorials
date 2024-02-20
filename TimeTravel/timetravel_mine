@@ -1,0 +1,53 @@
+use database myown_db;
+
+create or replace table public.tt as
+select * from sales;
+
+select * from tt;
+
+// when creating a table with data retiontion mentioned
+//CREATE TABLE mytable(col1 NUMBER, col2 DATE) DATA_RETENTION_TIME_IN_DAYS=90;
+
+ALTER TABLE public.tt SET DATA_RETENTION_TIME_IN_DAYS=20;
+//create or replace table mydb.public.tt
+//DATA_RETENTION_TIME_IN_DAYS = 20;
+
+SHOW TABLES LIKE 'TT%';
+
+CREATE SCHEMA myown_db.TTschema DATA_RETENTION_TIME_IN_DAYS = 20;
+SHOW SCHEMAS like 'TTschema%';
+
+ALTER TABLE MYOWN_DB.public.TT
+SET DATA_RETENTION_TIME_IN_DAYS = 15;
+
+SHOW TABLES LIKE 'TT%';
+
+//copy into MYDB.public.TT
+//from @mydb.external_stages.my_aws_s3_csv
+
+SELECT * FROM TT;
+//SELECT * FROM TT where C_CUSTOMER_SK=45450323;
+SELECT * FROM TT where ORDER_ID = 475244;
+
+UPDATE MYOWN_DB.public.TT SET SELLER_ID=10 WHERE ORDER_ID = 475244;// 2024-02-20 09:50:41.226 -0800
+SELECT * FROM MYOWN_DB.public.TT where ORDER_ID = 475244;
+SHOW TABLES LIKE 'TT%';
+SELECT CURRENT_TIMESTAMP;   //2024-02-20 11:07:49.916 -0800
+
+DELETE FROM MYOWN_DB.public.TT where ORDER_ID = 475244;
+
+SELECT CURRENT_TIMESTAMP; -- 2024-02-20 11:08:35.916 -0800
+SELECT * FROM MYOWN_DB.public.TT where ORDER_ID = 475244;
+
+SELECT * FROM MYOWN_DB.public.TT AT(timestamp => '2024-02-20 11:07:49.916 -0800':: timestamp_tz)
+WHERE ORDER_ID = 475244;
+
+CREATE TABLE MYTABLE 
+as SELECT * FROM MYOWN_DB.public.TT AT(timestamp => '2024-02-20 11:07:49.916 -0800':: timestamp_tz);
+
+SELECT * FROM MYOWN_DB.PUBLIC.MYTABLE;
+
+SELECT * FROM MYOWN_DB.public.TT AT (offset => -60*23)
+WHERE ORDER_ID = 475244;
+
+SELECT CURRENT_TIMESTAMP;
