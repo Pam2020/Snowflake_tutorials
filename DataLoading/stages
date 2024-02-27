@@ -1,0 +1,19 @@
+select * from orders;
+
+// create a stage to get many csv files from a s3 bucket
+CREATE OR REPLACE SCHEMA external_stages;
+
+create or replace stage db.external_stages.aws_external_stage
+ url = 's3://ordersbucket1234/csv/'
+ file_format = (type = csv field_delimiter=',' skip_header = 1);
+ 
+list @db.external_stages.aws_external_stage;
+
+// viewing columns from ext stage
+select $1,$2,$3,$4 from @db.external_stages.aws_external_stage;
+
+// giving alias to column names on ext stage
+select $1 as order_id, $2 order_name from @db.external_stages.aws_external_stage;
+
+// applying basic transformations by using functions
+
